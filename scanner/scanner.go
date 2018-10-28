@@ -9,6 +9,7 @@ type Scanner struct {
 	Errors   []error
 	Tokens   []Token
 	HadError bool
+	Line     int
 	current  int
 	length   int
 	lines    string
@@ -16,9 +17,11 @@ type Scanner struct {
 
 func (scnr *Scanner) Scan(lines string) {
 
+	println(lines)
 	scnr.Errors = make([]error, 0, 16)
 	scnr.Tokens = make([]Token, 0, 32)
 	scnr.current = 0
+	scnr.Line = 1
 	scnr.length = len(lines)
 	scnr.lines = lines
 
@@ -35,11 +38,12 @@ func (scnr *Scanner) scanTokens(line string) {
 	fmt.Println("In ScanTokens!")
 	for {
 		cur, peek := scnr.nextChars()
-		if cur == ' ' {
+		if cur == 0 {
 			break
 		}
 		err := scnr.getNextToken(cur, peek)
 		if err == io.EOF {
+			scnr.appendEOFToken()
 			return
 		} else if err != nil {
 			scnr.Errors = append(scnr.Errors, err)
@@ -51,21 +55,29 @@ func (scnr *Scanner) nextChars() (rune, rune) {
 	if scnr.current+1 < scnr.length-1 {
 		return rune(scnr.lines[scnr.current]), rune(scnr.lines[scnr.current+1])
 	} else if scnr.current < scnr.length-1 {
-		return rune(scnr.lines[scnr.current]), ' '
+		return rune(scnr.lines[scnr.current]), 0
 	}
-	return ' ', ' '
+	return 0, 0
 
 }
 
 func (scnr *Scanner) getNextToken(cur, peek rune) error {
-	fmt.Println("in get next token")
 	tkn := Token{
 		Position: scnr.current,
+		Line:     scnr.Line,
 		Lexeme:   string(cur),
 		Length:   1,
 	}
 
 	switch cur {
+	case ' ', '\r', '\t':
+		// we ignore whitespace
+		scnr.current += 1
+		return nil
+	case '\n':
+		scnr.Line += 1
+		scnr.current += 1
+		return nil
 	case '(':
 		tkn.Type = LEFT_PAREN
 	case ')':
@@ -139,8 +151,18 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 	return nil
 
 }
+
+func (scnr *Scanner) appendEOFToken() {
+	scnr.Tokens = append(scnr.Tokens, Token{
+		Position: scnr.current,
+		Lexeme:   "EOF",
+		Length:   0,
+		Type:     EOF,
+	})
+}
+
 func (scnr *Scanner) consume() error {
-	for scnr.current < scnr.length-1 || scnr.lines[scnr.current] != '\n' {
+	for scnr.current < scnr.length-1 && scnr.lines[scnr.current] != '\n' {
 		scnr.current += 1
 	}
 

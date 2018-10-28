@@ -49,6 +49,7 @@ const (
 	TRUE
 	VAR
 	WHILE
+	EOF
 )
 
 func (t TokenType) String() string {
@@ -129,6 +130,8 @@ func (t TokenType) String() string {
 		return "VAR"
 	case WHILE:
 		return "WHILE"
+	case EOF:
+		return "EOF"
 	default:
 		return "ERROR"
 	}
