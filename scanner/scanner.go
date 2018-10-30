@@ -34,6 +34,14 @@ func (scnr *Scanner) Scan(lines string) {
 
 }
 
+func (scnr *Scanner) appendError(err error) {
+	scnr.Errors = append(scnr.Errors, err)
+}
+
+func (scnr *Scanner) appendToken(tkn Token) {
+	scnr.Tokens = append(scnr.Tokens, tkn)
+}
+
 func (scnr *Scanner) scanTokens(line string) {
 	fmt.Println("In ScanTokens!")
 	for {
@@ -46,7 +54,7 @@ func (scnr *Scanner) scanTokens(line string) {
 			scnr.appendEOFToken()
 			return
 		} else if err != nil {
-			scnr.Errors = append(scnr.Errors, err)
+			scnr.appendError(err)
 		}
 	}
 }
@@ -71,12 +79,11 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 
 	switch cur {
 	case ' ', '\r', '\t':
-		// we ignore whitespace
 		scnr.current += 1
 		return nil
 	case '\n':
-		scnr.Line += 1
 		scnr.current += 1
+		scnr.Line += 1
 		return nil
 	case '(':
 		tkn.Type = LEFT_PAREN
@@ -102,6 +109,8 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 		if peek == '=' {
 			tkn.Type = BANG_EQUAL
 			tkn.Length = 2
+			tkn.Lexeme = "!="
+			scnr.current += 1
 		} else {
 			tkn.Type = BANG
 		}
@@ -109,6 +118,8 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 		if peek == '=' {
 			tkn.Type = EQUAL_EQUAL
 			tkn.Length = 2
+			tkn.Lexeme = "=="
+			scnr.current += 1
 		} else {
 			tkn.Type = EQUAL
 		}
@@ -116,7 +127,9 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 	case '<':
 		if peek == '=' {
 			tkn.Type = LESS_EQUAL
+			tkn.Lexeme = "<="
 			tkn.Length = 2
+			scnr.current += 1
 		} else {
 			tkn.Type = LESS
 		}
@@ -124,16 +137,24 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 	case '>':
 		if peek == '=' {
 			tkn.Type = GREATER_EQUAL
+			tkn.Lexeme = ">="
 			tkn.Length = 2
+			scnr.current += 1
 		} else {
 			tkn.Type = GREATER
 		}
 	case '/':
 		if peek == '/' {
 			// consume til eol / eof
-			return scnr.consume()
+			// do not create lexeme
+			return scnr.consume('\n')
 		} else {
 			tkn.Type = SLASH
+		}
+	case '"':
+		err := scnr.string(&tkn)
+		if err != nil {
+			return err
 		}
 	default:
 		return ScannerError{
@@ -142,18 +163,15 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 		}
 
 	}
-	scnr.current += tkn.Length
+	scnr.current += 1
 
-	if tkn.Length == 2 {
-		tkn.Lexeme += string(peek)
-	}
-	scnr.Tokens = append(scnr.Tokens, tkn)
+	scnr.appendToken(tkn)
 	return nil
 
 }
 
 func (scnr *Scanner) appendEOFToken() {
-	scnr.Tokens = append(scnr.Tokens, Token{
+	scnr.appendToken(Token{
 		Position: scnr.current,
 		Lexeme:   "EOF",
 		Length:   0,
@@ -161,13 +179,34 @@ func (scnr *Scanner) appendEOFToken() {
 	})
 }
 
-func (scnr *Scanner) consume() error {
-	for scnr.current < scnr.length-1 && scnr.lines[scnr.current] != '\n' {
+func (scnr *Scanner) consume(limiter rune) error {
+	for scnr.current < scnr.length-1 && scnr.lines[scnr.current] != uint8(limiter) {
+		if scnr.lines[scnr.current] == '\n' {
+			scnr.Line += 1
+		}
 		scnr.current += 1
 	}
 
 	if scnr.current == scnr.length-1 {
 		return io.EOF
 	}
+	return nil
+}
+
+func (scnr *Scanner) string(tkn *Token) error {
+	// we will allow multi line strings
+	scnr.current += 1
+	err := scnr.consume('"')
+	if err == io.EOF && scnr.lines[scnr.current] != '"' {
+		return ScannerError{
+			Line:     scnr.Line,
+			Position: scnr.current,
+			Message:  "Unterminated string",
+		}
+	}
+	tkn.Type = STRING
+	tkn.Position += 1 // Remove leading "
+	tkn.Length = scnr.current - tkn.Position
+	tkn.Literal = scnr.lines[tkn.Position : tkn.Position+tkn.Length]
 	return nil
 }
