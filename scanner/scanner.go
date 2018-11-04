@@ -252,6 +252,8 @@ func (scnr *Scanner) identifier(tkn *Token) {
 	tkn.Type = IDENTIFIER
 	tkn.Length = scnr.current - start
 	tkn.Lexeme = scnr.lines[start:scnr.current]
+	adjustForKeywords(tkn)
+
 }
 
 func isAlphaNumeric(itm rune) bool {
