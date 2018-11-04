@@ -35,7 +35,7 @@ func (intp *Interpreter) runScanner(lines string) {
 	intp.Scnr.Scan(lines)
 	if intp.Scnr.HadError {
 		for _, err := range intp.Scnr.Errors {
-			println(err.Error())
+			fmt.Println(err.Error())
 		}
 		if !intp.IgnoreErrors {
 			os.Exit(statusCodes.EXIT_DATA_ERROR)
@@ -62,11 +62,11 @@ func (intp *Interpreter) RunFiles(files ...string) {
 func (intp *Interpreter) runFile(file string) {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		println("HadError! Could not read file: ", file)
+		fmt.Println("HadError! Could not read file: ", file)
 	}
-	println("-------------------------------------------------------------------------------------------------------")
-	println("-- Interpreting:", file)
-	println("-------------------------------------------------------------------------------------------------------")
+	fmt.Println("-------------------------------------------------------------------------------------------------------")
+	fmt.Println("-- Interpreting:", file)
+	fmt.Println("-------------------------------------------------------------------------------------------------------")
 
 	intp.run(string(data))
 }
