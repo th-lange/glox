@@ -4,6 +4,12 @@
 123
 1225
 12.356
+identifier = "Fooo"
+class StrangeName {
+    var first = 123
+}
+
+iden_ti_fier = 123
 0123.1223
 "This is a very long string
 that spans multiple lines

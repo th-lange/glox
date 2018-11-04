@@ -165,7 +165,8 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 			if err != nil {
 				return err
 			}
-
+		} else if unicode.IsLetter(cur) {
+			scnr.identifier(&tkn)
 		} else {
 			return ScannerError{
 				Position: scnr.current,
@@ -175,7 +176,6 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 
 	}
 	scnr.current += 1
-
 	scnr.appendToken(tkn)
 	return nil
 
@@ -240,4 +240,20 @@ func (scnr *Scanner) number(tkn *Token) (err error) {
 	tkn.Lexeme = scnr.lines[start:scnr.current]
 	tkn.Literal, err = strconv.ParseFloat(tkn.Lexeme, 64)
 	return err
+}
+
+func (scnr *Scanner) identifier(tkn *Token) {
+	start := scnr.current
+
+	for scnr.current < scnr.length-1 && (isAlphaNumeric(rune(scnr.lines[scnr.current]))) {
+		scnr.current += 1
+	}
+
+	tkn.Type = IDENTIFIER
+	tkn.Length = scnr.current - start
+	tkn.Lexeme = scnr.lines[start:scnr.current]
+}
+
+func isAlphaNumeric(itm rune) bool {
+	return unicode.IsLetter(itm) || unicode.IsDigit(itm) || itm == '_' || itm == '-'
 }
