@@ -3,6 +3,8 @@ package scanner
 import (
 	"fmt"
 	"io"
+	"strconv"
+	"unicode"
 )
 
 type Scanner struct {
@@ -17,7 +19,7 @@ type Scanner struct {
 
 func (scnr *Scanner) Scan(lines string) {
 
-	println(lines)
+	fmt.Println(lines)
 	scnr.Errors = make([]error, 0, 16)
 	scnr.Tokens = make([]Token, 0, 32)
 	scnr.current = 0
@@ -157,9 +159,18 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 			return err
 		}
 	default:
-		return ScannerError{
-			Position: scnr.current,
-			Message:  "Unexpected character: " + string(cur),
+		// Numbers
+		if unicode.IsDigit(cur) {
+			err := scnr.number(&tkn)
+			if err != nil {
+				return err
+			}
+
+		} else {
+			return ScannerError{
+				Position: scnr.current,
+				Message:  "Unexpected character: " + string(cur),
+			}
 		}
 
 	}
@@ -208,5 +219,25 @@ func (scnr *Scanner) string(tkn *Token) error {
 	tkn.Position += 1 // Remove leading "
 	tkn.Length = scnr.current - tkn.Position
 	tkn.Literal = scnr.lines[tkn.Position : tkn.Position+tkn.Length]
+	tkn.Lexeme = scnr.lines[tkn.Position : tkn.Position+tkn.Length]
 	return nil
+}
+
+func (scnr *Scanner) number(tkn *Token) (err error) {
+	start := scnr.current
+	iterate := func() {
+		for scnr.current < scnr.length-1 && unicode.IsDigit(rune(scnr.lines[scnr.current])) {
+			scnr.current += 1
+		}
+	}
+	iterate()
+	if scnr.current < scnr.length-1 && scnr.lines[scnr.current] == uint8('.') {
+		scnr.current += 1
+		iterate()
+	}
+	tkn.Type = NUMBER
+	tkn.Length = scnr.current - start
+	tkn.Lexeme = scnr.lines[start:scnr.current]
+	tkn.Literal, err = strconv.ParseFloat(tkn.Lexeme, 64)
+	return err
 }

@@ -1,6 +1,10 @@
 // this is a comment
 (( )){} // grouping stuff
 !*+-/=<> <= == // operators
+123
+1225
+12.356
+0123.1223
 "This is a very long string
 that spans multiple lines
 
