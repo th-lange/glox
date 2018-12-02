@@ -1,3 +1,11 @@
+/*
+Foooo bar
+
+fffoooo bar bar / test
+
+*/
+
+
 // this is a comment
 (( )){} // grouping stuff
 !*+-/=<> <= == // operators
@@ -19,4 +27,7 @@ and  and_and
 class  class_class
 else  else_else
 false  false_false
-for  for_for 
+for  for_for
+
+/*
+Unterminated multi line comment

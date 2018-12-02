@@ -150,6 +150,8 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 			// consume til eol / eof
 			// do not create lexeme
 			return scnr.consume('\n')
+		} else if peek == '*' {
+			return scnr.consumeUntilTwo('*', '/')
 		} else {
 			tkn.Type = SLASH
 		}
@@ -202,6 +204,20 @@ func (scnr *Scanner) consume(limiter rune) error {
 		return io.EOF
 	}
 	return nil
+}
+
+func (scnr *Scanner) consumeUntilTwo(first, second rune) error {
+	err := scnr.consume(first)
+
+	if scnr.current+1 < scnr.length-1 && scnr.lines[scnr.current+1] != uint8(second) {
+		scnr.current += 1
+		return scnr.consumeUntilTwo(first, second)
+	}
+
+	if scnr.current+2 < scnr.length-1 {
+		scnr.current += 2
+	}
+	return err
 }
 
 func (scnr *Scanner) string(tkn *Token) error {
