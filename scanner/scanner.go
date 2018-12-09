@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"io"
 	"strconv"
 	"unicode"
@@ -19,7 +18,6 @@ type Scanner struct {
 
 func (scnr *Scanner) Scan(lines string) {
 
-	fmt.Println(lines)
 	scnr.Errors = make([]error, 0, 16)
 	scnr.Tokens = make([]Token, 0, 32)
 	scnr.current = 0
@@ -29,11 +27,6 @@ func (scnr *Scanner) Scan(lines string) {
 
 	scnr.HadError = false
 	scnr.scanTokens(lines)
-
-	for _, itm := range scnr.Tokens {
-		fmt.Println(itm)
-	}
-
 }
 
 func (scnr *Scanner) appendError(err error) {
@@ -45,7 +38,6 @@ func (scnr *Scanner) appendToken(tkn Token) {
 }
 
 func (scnr *Scanner) scanTokens(line string) {
-	fmt.Println("In ScanTokens!")
 	for {
 		cur, peek := scnr.nextChars()
 		if cur == 0 {
@@ -62,9 +54,9 @@ func (scnr *Scanner) scanTokens(line string) {
 }
 
 func (scnr *Scanner) nextChars() (rune, rune) {
-	if scnr.current+1 < scnr.length-1 {
+	if scnr.current+1 < scnr.length {
 		return rune(scnr.lines[scnr.current]), rune(scnr.lines[scnr.current+1])
-	} else if scnr.current < scnr.length-1 {
+	} else if scnr.current < scnr.length {
 		return rune(scnr.lines[scnr.current]), 0
 	}
 	return 0, 0
@@ -242,12 +234,12 @@ func (scnr *Scanner) string(tkn *Token) error {
 func (scnr *Scanner) number(tkn *Token) (err error) {
 	start := scnr.current
 	iterate := func() {
-		for scnr.current < scnr.length-1 && unicode.IsDigit(rune(scnr.lines[scnr.current])) {
+		for scnr.current < scnr.length && unicode.IsDigit(rune(scnr.lines[scnr.current])) {
 			scnr.current += 1
 		}
 	}
 	iterate()
-	if scnr.current < scnr.length-1 && scnr.lines[scnr.current] == uint8('.') {
+	if scnr.current < scnr.length && scnr.lines[scnr.current] == uint8('.') {
 		scnr.current += 1
 		iterate()
 	}
@@ -261,7 +253,7 @@ func (scnr *Scanner) number(tkn *Token) (err error) {
 func (scnr *Scanner) identifier(tkn *Token) {
 	start := scnr.current
 
-	for scnr.current < scnr.length-1 && (isAlphaNumeric(rune(scnr.lines[scnr.current]))) {
+	for scnr.current < scnr.length && (isAlphaNumeric(rune(scnr.lines[scnr.current]))) {
 		scnr.current += 1
 	}
 
