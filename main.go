@@ -6,8 +6,14 @@ import (
 	"github.com/th-lange/glox/interpreter"
 )
 
+var debug bool
+
 func main() {
-	intpr := interpreter.Init()
+
+	//TODO: Move to COBRA
+	debug = false
+
+	intpr := interpreter.Init(debug)
 	args := os.Args
 	if len(args) == 1 {
 		intpr.RunPrompt()
