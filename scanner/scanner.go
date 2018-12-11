@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 	"unicode"
@@ -10,6 +11,7 @@ type Scanner struct {
 	Errors   []error
 	Tokens   []Token
 	HadError bool
+	Debug    bool
 	Line     int
 	current  int
 	length   int
@@ -17,6 +19,10 @@ type Scanner struct {
 }
 
 func (scnr *Scanner) Scan(lines string) {
+
+	if scnr.Debug {
+		fmt.Println(lines)
+	}
 
 	scnr.Errors = make([]error, 0, 16)
 	scnr.Tokens = make([]Token, 0, 32)
@@ -27,9 +33,19 @@ func (scnr *Scanner) Scan(lines string) {
 
 	scnr.HadError = false
 	scnr.scanTokens(lines)
+
+	scnr.appendEOFToken()
+
+	if scnr.Debug {
+		fmt.Println("Scanner Result:")
+		for _, item := range scnr.Tokens {
+			fmt.Println(item)
+		}
+	}
 }
 
 func (scnr *Scanner) appendError(err error) {
+	scnr.HadError = true
 	scnr.Errors = append(scnr.Errors, err)
 }
 
@@ -45,7 +61,6 @@ func (scnr *Scanner) scanTokens(line string) {
 		}
 		err := scnr.getNextToken(cur, peek)
 		if err == io.EOF {
-			scnr.appendEOFToken()
 			return
 		} else if err != nil {
 			scnr.appendError(err)
@@ -180,6 +195,7 @@ func (scnr *Scanner) appendEOFToken() {
 		Position: scnr.current,
 		Lexeme:   "EOF",
 		Length:   0,
+		Line:     scnr.Line,
 		Type:     EOF,
 	})
 }

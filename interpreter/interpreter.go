@@ -16,9 +16,9 @@ type Interpreter struct {
 	IgnoreErrors bool
 }
 
-func Init() Interpreter {
+func Init(debug bool) Interpreter {
 	return Interpreter{
-		Scnr:         scanner.Scanner{},
+		Scnr:         scanner.Scanner{Debug: debug},
 		IgnoreErrors: false,
 	}
 }
