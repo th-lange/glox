@@ -223,3 +223,118 @@ func TestScanner_consumeUntilTwo(t *testing.T) {
 	scnr.consumeUntilTwo('/', '*')
 	assert.Equal(t, 20, scnr.current, "Expecting Scanner Consume to consume all characters up to the /*")
 }
+
+func TestScanner_string_ok(t *testing.T) {
+	line := "variable = \"This is a super string\""
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 11,
+		length:  len(line),
+	}
+	tkn := Token{
+		Position: scnr.current,
+		Line:     scnr.Line,
+		Lexeme:   "\"",
+		Length:   1,
+	}
+
+	err := scnr.string(&tkn)
+	assert.NoError(t, err, "Expecting no error after parsing strings.")
+	assert.Equal(t, STRING, tkn.Type, "Expected TokenType to be string after string parsing.")
+	assert.Equal(t, "This is a super string", tkn.Lexeme, "Expecting the correct string to be parsed.")
+}
+
+func TestScanner_string_error(t *testing.T) {
+	line := "variable = \"This is a super string"
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 11,
+		length:  len(line),
+	}
+	tkn := Token{
+		Position: scnr.current,
+		Line:     scnr.Line,
+		Lexeme:   "\"",
+		Length:   1,
+	}
+
+	err := scnr.string(&tkn)
+	assert.Error(t, err, "Expecting no error after parsing strings.")
+}
+
+func TestScanner_number_number(t *testing.T) {
+	line := "variable = 123 "
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 11,
+		length:  len(line),
+	}
+	tkn := Token{
+		Position: scnr.current,
+		Line:     scnr.Line,
+		Lexeme:   "1",
+		Length:   1,
+	}
+
+	err := scnr.number(&tkn)
+	assert.NoError(t, err, "Expecting no error after parsing strings.")
+	assert.Equal(t, NUMBER, tkn.Type, "Expected TokenType to be number after number parsing.")
+	assert.Equal(t, "123", tkn.Lexeme, "Expecting the correct number to be parsed.")
+}
+
+func TestScanner_number_double(t *testing.T) {
+	line := "variable = 123.123 "
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 11,
+		length:  len(line),
+	}
+	tkn := Token{
+		Position: scnr.current,
+		Line:     scnr.Line,
+		Lexeme:   "1",
+		Length:   1,
+	}
+
+	err := scnr.number(&tkn)
+	assert.NoError(t, err, "Expecting no error after parsing strings.")
+	assert.Equal(t, NUMBER, tkn.Type, "Expected TokenType to be double after number parsing.")
+	assert.Equal(t, "123.123", tkn.Lexeme, "Expecting the correct double to be parsed.")
+}
+
+func TestScanner_identifier(t *testing.T) {
+	line := " variable = 123.123 "
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 1,
+		length:  len(line),
+	}
+	tkn := Token{
+		Position: scnr.current,
+		Line:     scnr.Line,
+		Lexeme:   "v",
+		Length:   1,
+	}
+
+	scnr.identifier(&tkn)
+	assert.Equal(t, IDENTIFIER, tkn.Type, "Expecting the type to be set to IDENTIFIER.")
+	assert.Equal(t, "variable", tkn.Lexeme, "Expecting the type to be set to variable.")
+	assert.Equal(t, 9, scnr.current, "Expecting current to be set to the correct value.")
+}
+
+func TestScanner_isAlphaNumeric(t *testing.T) {
+	assert.True(t, isAlphaNumeric('1'), "Expecting 1 to be considered alphaNumeric")
+	assert.True(t, isAlphaNumeric('x'), "Expecting x to be considered alphaNumeric")
+	assert.True(t, isAlphaNumeric('_'), "Expecting _ to be considered alphaNumeric")
+	assert.True(t, isAlphaNumeric('-'), "Expecting - to be considered alphaNumeric")
+
+	assert.False(t, isAlphaNumeric('*'), "Expecting * not to be considered alphaNumeric")
+	assert.False(t, isAlphaNumeric('/'), "Expecting / not to be considered alphaNumeric")
+	assert.False(t, isAlphaNumeric('>'), "Expecting < not to be considered alphaNumeric")
+	assert.False(t, isAlphaNumeric('<'), "Expecting > not to be considered alphaNumeric")
+}
