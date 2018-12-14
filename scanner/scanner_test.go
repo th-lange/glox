@@ -1,10 +1,10 @@
 package scanner
 
-
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const TestCode = `/*
@@ -42,65 +42,62 @@ for  for_for
 Unterminated multi line comment
 `
 
-
-
-var expected = []Token {
-	{Type:LEFT_PAREN, Line: 10, Lexeme: "("},
-{ Line: 10, Type: LEFT_PAREN, Lexeme: "("},
-	{ Line: 10, Type: RIGHT_PAREN, Lexeme: ")"},
-	{ Line: 10, Type: RIGHT_PAREN, Lexeme: ")"},
-	{ Line: 10, Type: LEFT_BRACE, Lexeme: "{"},
-	{ Line: 10, Type: RIGHT_BRACE, Lexeme: "}"},
-	{ Line: 11, Type: BANG, Lexeme: "!"},
-	{ Line: 11, Type: STAR, Lexeme: "*"},
-	{ Line: 11, Type: PLUS, Lexeme: "+"},
-	{ Line: 11, Type: MINUS, Lexeme: "-"},
-	{ Line: 11, Type: SLASH, Lexeme: "/"},
-	{ Line: 11, Type: EQUAL, Lexeme: "="},
-	{ Line: 11, Type: LESS, Lexeme: "<"},
-	{ Line: 11, Type: GREATER, Lexeme: ">"},
-	{ Line: 11, Type: LESS_EQUAL, Lexeme: "<="},
-	{ Line: 11, Type: EQUAL_EQUAL, Lexeme: "=="},
-	{ Line: 12, Type: NUMBER, Lexeme: "123", Literal: 123},
-	{ Line: 12, Type: NUMBER, Lexeme: "1225", Literal: 1225},
-	{ Line: 12, Type: NUMBER, Lexeme: "12.356", Literal: 12.356},
-	{ Line: 12, Type: IDENTIFIER, Lexeme: "identifier"},
-	{ Line: 12, Type: EQUAL, Lexeme: "="},
-	{ Line: 12, Type: STRING, Lexeme: "Fooo", Literal: "Fooo"},
-	{ Line: 13, Type: CLASS, Lexeme: "class"},
-	{ Line: 13, Type: IDENTIFIER, Lexeme: "StrangeName"},
-	{ Line: 13, Type: LEFT_BRACE, Lexeme: "{"},
-	{ Line: 14, Type: VAR, Lexeme: "var"},
-	{ Line: 14, Type: IDENTIFIER, Lexeme: "first"},
-	{ Line: 14, Type: EQUAL, Lexeme: "="},
-	{ Line: 14, Type: NUMBER, Lexeme: "123", Literal: 123},
-	{ Line: 14, Type: RIGHT_BRACE, Lexeme: "}"},
-	{ Line: 16, Type: IDENTIFIER, Lexeme: "iden_ti_fier"},
-	{ Line: 16, Type: EQUAL, Lexeme: "="},
-	{ Line: 16, Type: NUMBER, Lexeme: "123", Literal: 123},
-	{ Line: 16, Type: NUMBER, Lexeme: "0123.1223", Literal: 123.1223},
-	{ Line: 16, Type: STRING, Lexeme:
-`This is a very long string
+var expected = []Token{
+	{Type: LEFT_PAREN, Line: 10, Lexeme: "("},
+	{Line: 10, Type: LEFT_PAREN, Lexeme: "("},
+	{Line: 10, Type: RIGHT_PAREN, Lexeme: ")"},
+	{Line: 10, Type: RIGHT_PAREN, Lexeme: ")"},
+	{Line: 10, Type: LEFT_BRACE, Lexeme: "{"},
+	{Line: 10, Type: RIGHT_BRACE, Lexeme: "}"},
+	{Line: 11, Type: BANG, Lexeme: "!"},
+	{Line: 11, Type: STAR, Lexeme: "*"},
+	{Line: 11, Type: PLUS, Lexeme: "+"},
+	{Line: 11, Type: MINUS, Lexeme: "-"},
+	{Line: 11, Type: SLASH, Lexeme: "/"},
+	{Line: 11, Type: EQUAL, Lexeme: "="},
+	{Line: 11, Type: LESS, Lexeme: "<"},
+	{Line: 11, Type: GREATER, Lexeme: ">"},
+	{Line: 11, Type: LESS_EQUAL, Lexeme: "<="},
+	{Line: 11, Type: EQUAL_EQUAL, Lexeme: "=="},
+	{Line: 12, Type: NUMBER, Lexeme: "123", Literal: 123},
+	{Line: 12, Type: NUMBER, Lexeme: "1225", Literal: 1225},
+	{Line: 12, Type: NUMBER, Lexeme: "12.356", Literal: 12.356},
+	{Line: 12, Type: IDENTIFIER, Lexeme: "identifier"},
+	{Line: 12, Type: EQUAL, Lexeme: "="},
+	{Line: 12, Type: STRING, Lexeme: "Fooo", Literal: "Fooo"},
+	{Line: 13, Type: CLASS, Lexeme: "class"},
+	{Line: 13, Type: IDENTIFIER, Lexeme: "StrangeName"},
+	{Line: 13, Type: LEFT_BRACE, Lexeme: "{"},
+	{Line: 14, Type: VAR, Lexeme: "var"},
+	{Line: 14, Type: IDENTIFIER, Lexeme: "first"},
+	{Line: 14, Type: EQUAL, Lexeme: "="},
+	{Line: 14, Type: NUMBER, Lexeme: "123", Literal: 123},
+	{Line: 14, Type: RIGHT_BRACE, Lexeme: "}"},
+	{Line: 16, Type: IDENTIFIER, Lexeme: "iden_ti_fier"},
+	{Line: 16, Type: EQUAL, Lexeme: "="},
+	{Line: 16, Type: NUMBER, Lexeme: "123", Literal: 123},
+	{Line: 16, Type: NUMBER, Lexeme: "0123.1223", Literal: 123.1223},
+	{Line: 16, Type: STRING, Lexeme: `This is a very long string
 that spans multiple lines
 
 KK`},
-	{ Line: 20, Type: AND, Lexeme: "and"},
-	{ Line: 20, Type: IDENTIFIER, Lexeme: "and_and"},
-	{ Line: 20, Type: CLASS, Lexeme: "class"},
-	{ Line: 20, Type: IDENTIFIER, Lexeme: "class_class"},
-	{ Line: 20, Type: ELSE, Lexeme: "else"},
-	{ Line: 20, Type: IDENTIFIER, Lexeme: "else_else"},
-	{ Line: 20, Type: FALSE, Lexeme: "false"},
-	{ Line: 20, Type: IDENTIFIER, Lexeme: "false_false"},
-	{ Line: 20, Type: FOR, Lexeme: "for"},
-	{ Line: 20, Type: IDENTIFIER, Lexeme: "for_for"},
-	{ Line: 22, Type: EOF, Lexeme: "EOF"},
+	{Line: 20, Type: AND, Lexeme: "and"},
+	{Line: 20, Type: IDENTIFIER, Lexeme: "and_and"},
+	{Line: 20, Type: CLASS, Lexeme: "class"},
+	{Line: 20, Type: IDENTIFIER, Lexeme: "class_class"},
+	{Line: 20, Type: ELSE, Lexeme: "else"},
+	{Line: 20, Type: IDENTIFIER, Lexeme: "else_else"},
+	{Line: 20, Type: FALSE, Lexeme: "false"},
+	{Line: 20, Type: IDENTIFIER, Lexeme: "false_false"},
+	{Line: 20, Type: FOR, Lexeme: "for"},
+	{Line: 20, Type: IDENTIFIER, Lexeme: "for_for"},
+	{Line: 22, Type: EOF, Lexeme: "EOF"},
 }
 
 func TestScanner_Scan(t *testing.T) {
 	type testStruct struct {
-		name string
-		input string
+		name         string
+		input        string
 		expectedType TokenType
 	}
 
@@ -121,7 +118,6 @@ func TestScanner_Scan(t *testing.T) {
 	}
 }
 
-
 func TestScanner_Scan2(t *testing.T) {
 	scnr := Scanner{}
 	scnr.Scan(TestCode)
@@ -137,7 +133,6 @@ func TestScanner_Scan2(t *testing.T) {
 
 }
 
-
 func TestScanner_appendError(t *testing.T) {
 	scnr := Scanner{}
 
@@ -147,25 +142,24 @@ func TestScanner_appendError(t *testing.T) {
 	scnr.appendError(err1)
 	scnr.appendError(err2)
 
-	assert.Equal(t, err1, scnr.Errors[0], "Expecting correct first error: " + err1.Error())
-	assert.Equal(t, err2, scnr.Errors[1], "Expecting correct second error: "  + err2.Error())
+	assert.Equal(t, err1, scnr.Errors[0], "Expecting correct first error: "+err1.Error())
+	assert.Equal(t, err2, scnr.Errors[1], "Expecting correct second error: "+err2.Error())
 
 	assert.True(t, scnr.HadError, "Expecting HadErrors to be set")
 }
 
-
 func TestScanner_appendToken(t *testing.T) {
-	tkn1 := Token{Line:1, Lexeme:"(", Type:LEFT_PAREN}
-	tkn2 := Token{Line:1, Lexeme:")", Type:RIGHT_PAREN}
-	tkn3 := Token{Line:2, Lexeme:"{", Type:LEFT_BRACE}
-	tkn4 := Token{Line:2, Lexeme:"}", Type:RIGHT_BRACE}
+	tkn1 := Token{Line: 1, Lexeme: "(", Type: LEFT_PAREN}
+	tkn2 := Token{Line: 1, Lexeme: ")", Type: RIGHT_PAREN}
+	tkn3 := Token{Line: 2, Lexeme: "{", Type: LEFT_BRACE}
+	tkn4 := Token{Line: 2, Lexeme: "}", Type: RIGHT_BRACE}
 
 	type args struct {
 		tkn Token
 	}
 	tests := []struct {
-		name string
-		args args
+		name     string
+		args     args
 		expected []Token
 	}{
 		{name: "Adding first Token: (. Expecting Tokens: (", args: args{tkn: tkn1}, expected: []Token{tkn1}},
@@ -181,6 +175,51 @@ func TestScanner_appendToken(t *testing.T) {
 	}
 }
 
-		})
+func TestScanner_appendEOFToken(t *testing.T) {
+	scnr := Scanner{}
+	scnr.Scan("")
+
+	expected := Token{
+		Position: scnr.current,
+		Lexeme:   "EOF",
+		Length:   0,
+		Line:     scnr.Line,
+		Type:     EOF,
 	}
+	assert.Contains(t, scnr.Tokens, expected, "Expects, that an EOF Token is appended.")
+}
+
+func TestScanner_consume(t *testing.T) {
+	line := "This it \" a test /* line*/"
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 0,
+		length:  len(line),
+	}
+
+	scnr.consume('"')
+	assert.Equal(t, 8, scnr.current, "Expecting Scanner Consume to consume all characters up to the \"")
+
+	scnr.consume('*')
+	assert.Equal(t, 18, scnr.current, "Expecting Scanner Consume to consume all characters up to the *")
+
+	scnr.consume('/')
+	assert.Equal(t, 25, scnr.current, "Expecting Scanner Consume to consume all characters up to the /")
+}
+
+func TestScanner_consumeUntilTwo(t *testing.T) {
+	line := "This it // a test /* line*/"
+	scnr := Scanner{
+		lines:   line,
+		Line:    1,
+		current: 0,
+		length:  len(line),
+	}
+
+	scnr.consumeUntilTwo('/', '/')
+	assert.Equal(t, 10, scnr.current, "Expecting Scanner Consume to consume all characters up to the //")
+
+	scnr.consumeUntilTwo('/', '*')
+	assert.Equal(t, 20, scnr.current, "Expecting Scanner Consume to consume all characters up to the /*")
 }
