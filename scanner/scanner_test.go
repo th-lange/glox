@@ -102,17 +102,16 @@ func TestScanner_Scan(t *testing.T) {
 	}
 
 	tts := GetTokenTypes()
-	tests := make([]testStruct, len(tts), len(tts))
 
-	for i, tt := range tts {
-		tests[i] = testStruct{"Testing: " + tt.String, tt.String, tt.TokenTypes[0]}
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range tts {
+		name := "Testing: " + tt.String + " Expecting correct parsing of element."
+		t.Run(name, func(t *testing.T) {
 			scnr := Scanner{}
-			scnr.Scan(tt.input)
-			assert.Equal(t, scnr.Tokens[0].Type, tt.expectedType, tt.name)
+			scnr.Scan(tt.String)
+			assert.Equal(t, scnr.Tokens[0].Type, tt.TokenTypes[0], "TokenType: "+name)
+			assert.Equal(t, scnr.Tokens[0].Length, tt.Lengths[0], "Length: "+name)
+			assert.Equal(t, scnr.Tokens[0].Lexeme, tt.Lexemes[0], "Literal: "+name)
+
 			assert.Equal(t, scnr.Tokens[1].Type, EOF, "Expecting the last Token to be EOF")
 		})
 	}
