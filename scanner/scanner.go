@@ -11,7 +11,7 @@ type Scanner struct {
 	Errors   []error
 	Tokens   []Token
 	HadError bool
-	Debug    bool
+	Debug    int8
 	Line     int
 	current  int
 	length   int
@@ -20,7 +20,7 @@ type Scanner struct {
 
 func (scnr *Scanner) Scan(lines string) {
 
-	if scnr.Debug {
+	if scnr.Debug > 1 {
 		fmt.Println(lines)
 	}
 
@@ -36,7 +36,7 @@ func (scnr *Scanner) Scan(lines string) {
 
 	scnr.appendEOFToken()
 
-	if scnr.Debug {
+	if scnr.Debug > 0 {
 		fmt.Println("Scanner Result:")
 		for _, item := range scnr.Tokens {
 			fmt.Println(item)
