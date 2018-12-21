@@ -11,7 +11,7 @@ var Debug int8
 
 var rootCmd = &cobra.Command{
 	Use:   "glox",
-	Short: "g-lox is interpreter written in go",
+	Short: "g-lox is a interpreter written in go",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		intpr := interpreter.Init(Debug)
