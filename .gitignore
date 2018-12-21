@@ -1,1 +1,2 @@
-.expression
+expression/*
+!expression/expression.go
