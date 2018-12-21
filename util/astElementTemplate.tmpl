@@ -1,0 +1,13 @@
+package {{.PackageName}}
+
+
+{{if .ImportRequired}}
+import (
+ "github.com/th-lange/glox/scanner"
+)
+{{end}}
+
+type {{.Name}} {{.TypeDef}} {
+    {{range .Elements}}{{.Name}}       {{.TType}}
+    {{end}}
+}
