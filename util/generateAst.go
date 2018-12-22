@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-const (
-	DefaultStructSpacing = 15
-)
-
 type TemplateMap map[string]interface{}
 
 type astDefElement struct {
@@ -22,17 +18,16 @@ type astDefElement struct {
 
 type astDef struct {
 	Name           string
-	PackageName    string
 	ImportRequired bool
 	Elements       []astDefElement
 }
 
 var astDefinition = []astDef{
-	{"Expression", "expression", false, []astDefElement{}},
-	{"Binary", "expression", true, []astDefElement{{"Left", "Expression"}, {"Operator", "scanner.Token"}, {"Right", "Expression"}}},
-	{"Grouping", "expression", false, []astDefElement{{"Expr", "Expression"}}},
-	{"Literal", "expression", false, []astDefElement{{"Value", "interface{}"}}},
-	{"Unary", "expression", true, []astDefElement{{"Operator", "scanner.Token"}, {"Right", "Expression"}}},
+	{"Expression", false, []astDefElement{}},
+	{"Binary", true, []astDefElement{{"Left", "Expression"}, {"Operator", "scanner.Token"}, {"Right", "Expression"}}},
+	{"Grouping", false, []astDefElement{{"Expr", "Expression"}}},
+	{"Literal", true, []astDefElement{{"Value", "scanner.Token"}}},
+	{"Unary", true, []astDefElement{{"Operator", "scanner.Token"}, {"Right", "Expression"}}},
 }
 
 func GenerateAst(homeDir, packageName string) {
@@ -46,28 +41,40 @@ func GenerateAst(homeDir, packageName string) {
 
 	itemTemplate, err := template.ParseFiles(homeDir + string(os.PathSeparator) + "util" + string(os.PathSeparator) + "astElementTemplate.tmpl")
 	checkErr(err, "Could not parse template!")
-	expressionTemplate, err := template.ParseFiles(homeDir + string(os.PathSeparator) + "util" + string(os.PathSeparator) + "visitorTemplate.tmpl")
+	expressionTemplate, err := template.ParseFiles(homeDir + string(os.PathSeparator) + "util" + string(os.PathSeparator) + "expressionTemplate.tmpl")
 	checkErr(err, "Could not parse template!")
 	for _, element := range astDefinition {
 		if element.Name == "Expression" {
-			writeTemplate(element, packageName, err, expressionTemplate, basePath)
+			writeTemplate(packageName, err, expressionTemplate, basePath, &element, element.Name)
 		} else {
-			writeTemplate(element, packageName, err, itemTemplate, basePath)
+			writeTemplate(packageName, err, itemTemplate, basePath, &element, element.Name)
 		}
 	}
 }
 
-func writeTemplate(element astDef, packageName string, err error, t *template.Template, basePath string) {
+func GenerateVisitor(homeDir, packageName, visitorName string) {
+	basePath := homeDir + string(os.PathSeparator) + packageName
+	if _, err := os.Stat(basePath); os.IsNotExist(err) {
+		err := os.Mkdir(basePath, os.ModePerm)
+		checkErr(err, "Could not create path: "+basePath+"!\nError:"+err.Error())
+	}
+	visitorTemplate, err := template.ParseFiles(homeDir + string(os.PathSeparator) + "util" + string(os.PathSeparator) + "visitorTemplate.tmpl")
+	writeTemplate(packageName, err, visitorTemplate, basePath, nil, visitorName)
+
+}
+
+func writeTemplate(packageName string, err error, t *template.Template, basePath string, element *astDef, name string) {
 	var codeBuffer bytes.Buffer
-	element.PackageName = packageName
 	err = t.Execute(&codeBuffer, TemplateMap{
-		"Self": element,
-		"All":  astDefinition,
+		"Self":     element,
+		"All":      astDefinition,
+		"Package":  packageName,
+		"ItemName": name,
 	})
 	checkErr(err, "Could not generate template!")
 	formatedCode, err := format.Source(codeBuffer.Bytes())
 	checkErr(err, "Could not format source code!")
-	filePointer, err := os.Create(basePath + string(os.PathSeparator) + strings.ToLower(element.Name) + ".go")
+	filePointer, err := os.Create(basePath + string(os.PathSeparator) + strings.ToLower(name) + ".go")
 	checkErr(err, "Could not open file pointer!")
 	_, err = filePointer.Write(formatedCode)
 	checkErr(err, "Could not write to file pointer!")

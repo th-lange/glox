@@ -14,3 +14,7 @@ type Token struct {
 func (t Token) String() string {
 	return fmt.Sprintf("Token: { Line: %d, Type: %s, Lexeme: \"%s\", Literal: %+v}", t.Line, t.Type, t.Lexeme, t.Literal)
 }
+
+func (t Token) ValueString() string {
+	return fmt.Sprintf(t.Lexeme)
+}
