@@ -29,8 +29,7 @@ func (visitor PrettyPrinter) parenthesize(name string, expression ...expression.
 
 	sb.WriteString(" ( " + name)
 	for _, itm := range expression {
-		foo := itm.Accept(visitor)
-		sb.WriteString(" " + foo.(string) + " ")
+		sb.WriteString(" " + itm.Accept(visitor).(string) + " ")
 	}
 	sb.WriteString(" ) ")
 	return sb.String()
