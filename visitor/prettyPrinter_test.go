@@ -3,7 +3,7 @@ package visitor
 import (
 	"testing"
 
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/th-lange/glox/scanner"
 
@@ -27,14 +27,10 @@ func setUpBinary() {
 	token1 := scanner.Token{Lexeme: "1", Type: scanner.NUMBER}
 	token2 := scanner.Token{Lexeme: "2", Type: scanner.NUMBER}
 
-	// First Set
-
 	firstFirst := expression.Literal{token123}
 	firstSecond := expression.Literal{token321}
 	firstSetBinary = expression.Binary{firstFirst, tokenPlus, firstSecond}
 	firstExpectedBinary = " ( + 123  321  ) "
-
-	// Second Set
 
 	grouping := expression.Grouping{
 		expression.Binary{
@@ -53,10 +49,6 @@ func setUpBinary() {
 		Right:    secondSecond,
 	}
 	secondExpectedBinary = " ( /  ( group  ( + 1  1  )   )   2  ) "
-}
-
-func setUpGrouping() {
-
 }
 
 func TestPrettyPrinter_VisitBinary(t *testing.T) {
