@@ -65,7 +65,6 @@ func GetTokenTypes() []TokenTestData {
 		{"var", []TokenType{VAR}, []string{"var"}, []int{3}},
 		{"while", []TokenType{WHILE}, []string{"while"}, []int{5}},
 	}
-
 }
 
 func TestToken_String(t *testing.T) {

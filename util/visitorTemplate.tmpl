@@ -1,11 +1,14 @@
-package {{.Self.PackageName}}
+package {{.Package}}
 
-type Visitor interface {
-        {{range .All}}{{ if ne .Name "Expression"}}Visit{{.Name}}       (expression Expression) interface{}{{end}}
-        {{end}}
+import "github.com/th-lange/glox/expression"
+
+type {{.ItemName}} struct{}
+
+{{range .All}}
+    {{ if ne .Name "Expression"}}
+func (visitor  {{$.ItemName}}) Visit{{.Name}} (expression expression.{{.Name}}) interface{} {
+    return nil
 }
+    {{end}}
+{{end}}
 
-
-type Expression interface {
-	Accept(Visitor) interface{}
-}
