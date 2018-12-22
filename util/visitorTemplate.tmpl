@@ -1,0 +1,11 @@
+package {{.Self.PackageName}}
+
+type Visitor interface {
+        {{range .All}}{{ if ne .Name "Expression"}}Visit{{.Name}}       (expression Expression) interface{}{{end}}
+        {{end}}
+}
+
+
+type Expression interface {
+	Accept(Visitor) interface{}
+}

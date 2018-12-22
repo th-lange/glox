@@ -1,13 +1,17 @@
-package {{.PackageName}}
+package {{.Self.PackageName}}
 
 
-{{if .ImportRequired}}
+{{if .Self.ImportRequired}}
 import (
  "github.com/th-lange/glox/scanner"
 )
 {{end}}
 
-type {{.Name}} {{.TypeDef}} {
-    {{range .Elements}}{{.Name}}       {{.TType}}
+type {{.Self.Name}} struct {
+    {{range .Self.Elements}}{{.Name}}       {{.TType}}
     {{end}}
+}
+
+func (self {{.Self.Name}}) Accept(visitor Visitor) interface{} {
+    return visitor.Visit{{.Self.Name}}(self)
 }
