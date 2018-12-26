@@ -15,7 +15,7 @@ func TestNewParser(t *testing.T) {
 	res := NewParser(&tkns)
 	assert.NotNil(t, res, "Expecting a new parser to be returned.")
 	assert.Equal(t, 0, res.head, "Expecting head to be initialized to 0")
-	assert.Equal(t, 5, res.length, "Expecting length to be set correctly")
+	assert.Equal(t, 4, res.length, "Expecting length to be set correctly to x - 1 (as we index with zero).")
 }
 
 func TestParser_IsAtEnd(t *testing.T) {
@@ -60,12 +60,64 @@ func TestParser_Advance(t *testing.T) {
 }
 
 func TestParser_Current(t *testing.T) {
+	expected := []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+		{Line: 10, Type: scanner.LEFT_BRACE, Lexeme: "{"},
+		{Line: 10, Type: scanner.RIGHT_BRACE, Lexeme: "}"},
+	}
+	prs := NewParser(&expected)
 
+	for _, exp := range expected {
+		assert.Equal(t, exp, prs.current())
+		prs.advance()
+	}
 }
 
 func TestParser_Consume(t *testing.T) {
+	expected := []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+		{Line: 10, Type: scanner.LEFT_BRACE, Lexeme: "{"},
+		{Line: 10, Type: scanner.RIGHT_BRACE, Lexeme: "{"},
+		{Line: 10, Type: scanner.RIGHT_BRACE, Lexeme: "{"},
+		{Line: 10, Type: scanner.RIGHT_BRACE, Lexeme: "{"},
+	}
+	prs := NewParser(&expected)
+
+	err := prs.consume(scanner.LEFT_PAREN)
+	assert.NoError(t, err, "Expecting correct consumption of LEFT_PAREN")
+	assert.Equal(t, 1, prs.head, "Expecting HEAD of parser to be set to 1 after consumption")
+	err = prs.consume(scanner.RIGHT_PAREN)
+	assert.NoError(t, err, "Expecting correct consumption of RIGHT_PAREN")
+	assert.Equal(t, 2, prs.head, "Expecting HEAD of parser to be set to 1 after consumption")
+	err = prs.consume(scanner.LEFT_BRACE)
+	assert.Equal(t, 3, prs.head, "Expecting HEAD of parser to be set to 1 after consumption")
+	assert.NoError(t, err, "Expecting correct consumption of LEFT_BRACE")
+
+	err = prs.consume(scanner.EQUAL)
+	assert.Error(t, err, "Expecting error when consume is called with a TokenType that does not follow.")
+
 }
+
 func TestParser_Previous(t *testing.T) {
+	expected := []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+		{Line: 10, Type: scanner.LEFT_BRACE, Lexeme: "{"},
+		{Line: 10, Type: scanner.RIGHT_BRACE, Lexeme: "}"},
+	}
+	prs := NewParser(&expected)
+
+	for i := 1; i < 6; i += 1 {
+		prs.advance()
+		assert.Equal(t, expected[i-1], prs.previous())
+	}
+
 }
 
 func TestParser_String(t *testing.T) {

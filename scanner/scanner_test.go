@@ -43,7 +43,7 @@ Unterminated multi line comment
 `
 
 var expected = []Token{
-	{Type: LEFT_PAREN, Line: 10, Lexeme: "("},
+	{Line: 10, Type: LEFT_PAREN, Lexeme: "("},
 	{Line: 10, Type: LEFT_PAREN, Lexeme: "("},
 	{Line: 10, Type: RIGHT_PAREN, Lexeme: ")"},
 	{Line: 10, Type: RIGHT_PAREN, Lexeme: ")"},
