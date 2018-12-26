@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/th-lange/glox/interpreter"
-	"os"
 )
 
 var Debug int8

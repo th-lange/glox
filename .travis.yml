@@ -1,0 +1,18 @@
+language: go
+
+go:
+    - 1.11.x
+
+os:
+  - linux
+  - osx
+  -
+install:
+  - go get github.com/spf13/cobra
+  - go get github.com/stretchr/testify/assert
+  - go run main.go generateAst
+
+
+script:
+  - . ./ci.gofmt.sh
+  - go test -race ./...
