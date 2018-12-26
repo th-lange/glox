@@ -12,3 +12,5 @@ This is a rewrite of the java implementation of the book.
 
 Thank you @munificent for publishing the instructions.
 
+
+[![Travis Build](https://travis-ci.org/pravj/glox.svg)](https://travis-ci.org/pravj/glox)
