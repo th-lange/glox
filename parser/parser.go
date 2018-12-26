@@ -18,7 +18,7 @@ func NewParser(tokens *[]scanner.Token) *parser {
 	prs := new(parser)
 	prs.tokens = tokens
 	if tokens != nil {
-		prs.length = len(*tokens)
+		prs.length = len(*tokens) - 1
 	}
 	prs.head = 0
 	return prs
@@ -168,12 +168,14 @@ func (prs *parser) previous() scanner.Token {
 }
 
 func (prs *parser) synchronize() {
-	prs.advance()
+	fmt.Println("In Synchronize:" + prs.String())
+	fmt.Println("In Synchronize:" + prs.String())
 	for !prs.isAtEnd() {
+		fmt.Println("In Synchronize:" + prs.String())
+		prs.advance()
 		switch (*prs.tokens)[prs.head-1].Type {
 		case scanner.CLASS, scanner.FUN, scanner.VAR, scanner.FOR, scanner.IF, scanner.WHILE, scanner.PRINT, scanner.RETURN:
 			return
 		}
-		prs.advance()
 	}
 }
