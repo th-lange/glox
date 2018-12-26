@@ -17,7 +17,9 @@ type parser struct {
 func NewParser(tokens *[]scanner.Token) *parser {
 	prs := new(parser)
 	prs.tokens = tokens
-	prs.length = len(*tokens)
+	if tokens != nil {
+		prs.length = len(*tokens)
+	}
 	prs.head = 0
 	return prs
 }
@@ -134,7 +136,7 @@ func (prs *parser) check(tokenType scanner.TokenType) bool {
 }
 
 func (prs *parser) isAtEnd() bool {
-	return prs.head > prs.length
+	return prs.head >= prs.length
 
 }
 
