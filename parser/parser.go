@@ -9,7 +9,7 @@ import (
 
 type parser struct {
 	tokens *[]scanner.Token
-	length int
+	last   int
 	head   int
 	errors []error
 }
@@ -17,15 +17,16 @@ type parser struct {
 func NewParser(tokens *[]scanner.Token) *parser {
 	prs := new(parser)
 	prs.tokens = tokens
+	prs.last = -1
 	if tokens != nil {
-		prs.length = len(*tokens) - 1
+		prs.last = len(*tokens) - 1
 	}
 	prs.head = 0
 	return prs
 }
 
 func (prs parser) String() string {
-	return fmt.Sprintf("Parser: Head: %d, Length: %d, Current Token: %s", prs.head, prs.length, (*prs.tokens)[prs.head].String())
+	return fmt.Sprintf("Parser: Head: %d, Last: %d, Current Token: %s", prs.head, prs.last, (*prs.tokens)[prs.head].String())
 }
 
 func (prs parser) Parse() expression.Expression {
@@ -114,7 +115,7 @@ func (prs *parser) primary() expression.Expression {
 		}
 		return expression.Grouping{expr}
 	}
-	panic(NewError("Found end of Grammar in parser.primary. Expected on of the following: FALSE, TRUE, NIL, STRING, NUMBER, LEFT_PAREN.", true, prs))
+	panic(NewError("Found end of Grammar in parser.primary. Expected one of the following: FALSE, TRUE, NIL, STRING, NUMBER, LEFT_PAREN.", true, prs))
 }
 
 func (prs *parser) advanceOnTokenTypeMatch(tokenTypes ...scanner.TokenType) bool {
@@ -136,8 +137,7 @@ func (prs *parser) check(tokenType scanner.TokenType) bool {
 }
 
 func (prs *parser) isAtEnd() bool {
-	return prs.head >= prs.length
-
+	return prs.head > prs.last
 }
 
 func (prs *parser) advance() {
@@ -145,8 +145,8 @@ func (prs *parser) advance() {
 }
 
 func (prs *parser) current() scanner.Token {
-	if prs.head < 0 && prs.head > prs.length {
-		panic(InvalidArgumentError{"Cound not return current element as HEAD is below 0 or above length of elements: " + prs.String()})
+	if prs.head < 0 && prs.head > prs.last {
+		panic(InvalidArgumentError{"Cound not return current element as HEAD is below 0 or above last of elements: " + prs.String()})
 	}
 	return (*prs.tokens)[prs.head]
 }
@@ -162,17 +162,17 @@ func (prs *parser) consume(tokenType scanner.TokenType) error {
 func (prs *parser) previous() scanner.Token {
 	if prs.head == 0 {
 
-		panic(InvalidArgumentError{"Cound not return prev element as HEAD is at 0: " + prs.String()})
+		panic(InvalidArgumentError{"Could not return prev element as HEAD is at 0: " + prs.String()})
 	}
 	return (*prs.tokens)[prs.head-1]
 }
 
 func (prs *parser) synchronize() {
 	fmt.Println("In Synchronize:" + prs.String())
-	fmt.Println("In Synchronize:" + prs.String())
 	for !prs.isAtEnd() {
 		fmt.Println("In Synchronize:" + prs.String())
 		prs.advance()
+		// THIS IS: HEAD-1 ... but why?!
 		switch (*prs.tokens)[prs.head-1].Type {
 		case scanner.CLASS, scanner.FUN, scanner.VAR, scanner.FOR, scanner.IF, scanner.WHILE, scanner.PRINT, scanner.RETURN:
 			return

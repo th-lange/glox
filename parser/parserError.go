@@ -27,7 +27,7 @@ func NewError(message string, sync bool, prs *parser) ParsingError {
 	err := ParsingError{prs.current(), prs.head, message, nil}
 	if sync {
 		prs.synchronize()
-		err.SyncEnd = &(*prs.tokens)[prs.head]
+		err.SyncEnd = &(*prs.tokens)[prs.head-1]
 	}
 	return err
 }
