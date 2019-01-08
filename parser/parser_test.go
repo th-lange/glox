@@ -13,6 +13,48 @@ type BinaryTest struct {
 	Operator []scanner.Token
 }
 
+func getParserResult() ([]scanner.Token, expression.Binary) {
+	input := []scanner.Token{
+		// Grouping
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+
+		// Comparison
+		{Line: 10, Type: scanner.EQUAL_EQUAL, Lexeme: "=="},
+
+		// Grouping
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		// Comparison
+		{Line: 10, Type: scanner.NUMBER, Lexeme: "1"},
+		{Line: 10, Type: scanner.BANG_EQUAL, Lexeme: "!="},
+		{Line: 10, Type: scanner.NUMBER, Lexeme: "2"},
+		// Grouping End
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+	}
+
+	expected := expression.Binary{
+		Left: expression.Grouping{
+			Expr: expression.Literal{
+				Value: input[1],
+			},
+		},
+		Operator: input[3],
+		Right: expression.Grouping{
+			Expr: expression.Binary{
+				Left: expression.Literal{
+					Value: input[5],
+				},
+				Operator: input[6],
+				Right: expression.Literal{
+					Value: input[7],
+				},
+			},
+		},
+	}
+	return input, expected
+}
+
 func TestNewParser(t *testing.T) {
 	tkns := make([]scanner.Token, 5, 5)
 
@@ -142,7 +184,6 @@ func TestParser_String(t *testing.T) {
 
 func TestParser_Primary_Simple(t *testing.T) {
 
-	// Testing: scanner.FALSE, scanner.TRUE, scanner.NIL, scanner.STRING, scanner.NUMBER
 	input := []scanner.Token{
 		{Line: 10, Type: scanner.FALSE, Lexeme: "false"},
 		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
@@ -163,7 +204,6 @@ func TestParser_Primary_Simple(t *testing.T) {
 
 func TestParser_Primary_Grouping_OK(t *testing.T) {
 
-	// Testing: scanner.FALSE, scanner.TRUE, scanner.NIL, scanner.STRING, scanner.NUMBER
 	input := []scanner.Token{
 		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
 		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
@@ -342,4 +382,111 @@ func TestParser_Equality(t *testing.T) {
 		result := prs.equality()
 		assert.Equal(t, expected, result, "Expecting a correct output for"+test.Lexeme)
 	}
+}
+
+func TestParser_Expression(t *testing.T) {
+	input, expected := getParserResult()
+	prs := NewParser(&input)
+	result := prs.expression()
+	assert.Equal(t, expected, result, "Expecting a correct output for parsing complex expressions.")
+}
+
+func TestParser_AdvanceOnTokenTypeMatch(t *testing.T) {
+	input := []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+	}
+	prs := NewParser(&input)
+
+	assert.Equal(t, 0, prs.head, "Expecting initial setting of prs.head to 0")
+	assert.Equal(t, 2, prs.last, "Expecting correct setting (and non-modification) of the prs.tail value")
+
+	result := prs.advanceOnTokenTypeMatch(scanner.EQUAL_EQUAL, scanner.EQUAL, scanner.BANG_EQUAL)
+
+	assert.Equal(t, 0, prs.head, "Expecting correct adjustment if token is found")
+	assert.Equal(t, 2, prs.last, "Expecting correct setting (and non-modification) of the prs.tail value")
+	assert.False(t, result, "Expecting false if token is not present")
+
+	result = prs.advanceOnTokenTypeMatch(scanner.EQUAL_EQUAL, scanner.LEFT_PAREN, scanner.TRUE)
+
+	assert.Equal(t, 1, prs.head, "Expecting correct adjustment if token is found")
+	assert.Equal(t, 2, prs.last, "Expecting correct setting (and non-modification) of the prs.tail value")
+	assert.True(t, result, "Expecting true if token is present")
+
+	prs.advanceOnTokenTypeMatch(scanner.EQUAL_EQUAL, scanner.TRUE)
+
+	assert.Equal(t, 2, prs.head, "Expecting correct adjustment if token is found")
+	assert.Equal(t, 2, prs.last, "Expecting correct setting (and non-modification) of the prs.tail value")
+	assert.True(t, result, "Expecting true if token is present")
+
+	prs.advanceOnTokenTypeMatch(scanner.RIGHT_PAREN, scanner.TRUE)
+
+	assert.Equal(t, 3, prs.head, "Expecting correct adjustment if token is found")
+	assert.Equal(t, 2, prs.last, "Expecting correct setting (and non-modification) of the prs.tail value")
+	assert.True(t, result, "Expecting true if token is present")
+}
+
+func TestParser_Check(t *testing.T) {
+	input := []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+	}
+	prs := NewParser(&input)
+
+	result := prs.check(scanner.RIGHT_PAREN)
+	assert.False(t, result, "Expecting false if elements do not match")
+
+	result = prs.check(scanner.LEFT_PAREN)
+	assert.True(t, result, "Expecting true if elements do match")
+
+}
+
+func TestParser_Synchronize(t *testing.T) {
+	// Test Case 1: Empty parser
+	input := []scanner.Token{}
+	prs := NewParser(&input)
+
+	prs.synchronize()
+
+	// Test Case 2: Parser with no break conditions
+	input = []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+	}
+	prs = NewParser(&input)
+
+	prs.synchronize()
+	assert.Equal(t, 3, prs.head, "Expecting synchronize() to walk to the end if no break conditions are found: CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN")
+
+	// Test Case 3: Last element is a break condition
+	input = []scanner.Token{
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+		{Line: 10, Type: scanner.FUN, Lexeme: "fun"},
+	}
+	prs = NewParser(&input)
+	prs.synchronize()
+	assert.Equal(t, 4, prs.head, "Expecting synchronize() to walk to the end if no break conditions are found: CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN")
+
+	// Test Case 4: Next element is a break condition
+	input = []scanner.Token{
+		{Line: 10, Type: scanner.FUN, Lexeme: "fun"},
+		{Line: 10, Type: scanner.LEFT_PAREN, Lexeme: "("},
+		{Line: 10, Type: scanner.TRUE, Lexeme: "true"},
+		{Line: 10, Type: scanner.RIGHT_PAREN, Lexeme: ")"},
+	}
+	prs = NewParser(&input)
+	prs.synchronize()
+	assert.Equal(t, 1, prs.head, "Expecting synchronize() to walk to the end if no break conditions are found: CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN")
+}
+
+func TestParser_Parse(t *testing.T) {
+	input, expected := getParserResult()
+	prs := NewParser(&input)
+	result := prs.Parse()
+	assert.Equal(t, expected, result, "Expecting a correct output for parsing complex expressions.")
 }
