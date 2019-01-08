@@ -26,7 +26,11 @@ func NewParser(tokens *[]scanner.Token) *parser {
 }
 
 func (prs parser) String() string {
-	return fmt.Sprintf("Parser: Head: %d, Last: %d, Current Token: %s", prs.head, prs.last, (*prs.tokens)[prs.head].String())
+	if prs.last > 0 {
+		return fmt.Sprintf("Parser: Head: %d, Last: %d, Current Token: %s", prs.head, prs.last, (*prs.tokens)[prs.head].String())
+	}
+	return fmt.Sprintf("Parser: Head: %d, Last: %d, No elements!", prs.head, prs.last)
+
 }
 
 func (prs parser) Parse() expression.Expression {
@@ -133,7 +137,6 @@ func (prs *parser) check(tokenType scanner.TokenType) bool {
 		return false
 	}
 	return prs.current().Type == tokenType
-
 }
 
 func (prs *parser) isAtEnd() bool {
