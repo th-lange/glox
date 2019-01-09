@@ -18,6 +18,19 @@ type Scanner struct {
 	lines    string
 }
 
+var simpleTokenTypes = map[rune]TokenType{
+	'(': LEFT_PAREN,
+	')': RIGHT_PAREN,
+	'{': LEFT_BRACE,
+	'}': RIGHT_BRACE,
+	',': COMMA,
+	'.': DOT,
+	'-': MINUS,
+	'+': PLUS,
+	';': SEMICOLON,
+	'*': STAR,
+}
+
 func (scnr *Scanner) Scan(lines string) {
 
 	if scnr.Debug > 1 {
@@ -94,26 +107,8 @@ func (scnr *Scanner) getNextToken(cur, peek rune) error {
 		scnr.current += 1
 		scnr.Line += 1
 		return nil
-	case '(':
-		tkn.Type = LEFT_PAREN
-	case ')':
-		tkn.Type = RIGHT_PAREN
-	case '{':
-		tkn.Type = LEFT_BRACE
-	case '}':
-		tkn.Type = RIGHT_BRACE
-	case ',':
-		tkn.Type = COMMA
-	case '.':
-		tkn.Type = DOT
-	case '-':
-		tkn.Type = MINUS
-	case '+':
-		tkn.Type = PLUS
-	case ';':
-		tkn.Type = SEMICOLON
-	case '*':
-		tkn.Type = STAR
+	case '(', ')', '{', '}', ',', '.', '-', '+', ';', '*':
+		tkn.Type = simpleTokenTypes[cur]
 	case '!':
 		if peek == '=' {
 			tkn.Type = BANG_EQUAL
